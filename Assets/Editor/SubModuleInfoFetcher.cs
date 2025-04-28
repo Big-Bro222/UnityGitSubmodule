@@ -103,8 +103,6 @@ public class SubModuleInfoFetcher
         {
             _submoduleSaver.Submodules.Add(submoduleInfo.Path);
         }
-        EditorUtility.SetDirty(_submoduleSaver);
-        AssetDatabase.SaveAssets();
         return submoduleInfos;
     }
 }

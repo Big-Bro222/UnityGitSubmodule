@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using UnityEditor;
@@ -21,7 +22,7 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
     private bool _pushable = false;
     private bool _pullable = false;
     private bool showIcons = false;
-    
+
     [MenuItem("Window/My Tools/Git Submodule Manager")]
     public static void ShowWindow()
     {
@@ -34,9 +35,8 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
     {
         // Load the saved folder path when the window opens
         _submoduleSaver = SubModuleSO.LoadOrCreate();
-        submodules= SubModuleInfoFetcher.RefreshSubmodulesModel();
+        submodules = SubModuleInfoFetcher.RefreshSubmodulesModel();
         EditorApplication.update += OnEditorUpdate;
-       
     }
 
     private void OnDisable()
@@ -46,7 +46,7 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
 
     private void OnEditorUpdate()
     {
-        if (EditorApplication.timeSinceStartup -  SubModuleInfoFetcher.LastRefreshTime > refreshInterval)
+        if (EditorApplication.timeSinceStartup - SubModuleInfoFetcher.LastRefreshTime > refreshInterval)
         {
             submodules = SubModuleInfoFetcher.RefreshSubmodulesModel();
             Repaint();
@@ -58,85 +58,89 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
         DrawSubModuleStatus();
         DrawIconSettings();
     }
-    
+
     /// <summary>
     /// Block for showing Git SubModule status and simple git actions
     /// </summary>
     private void DrawSubModuleStatus()
+    {
+        if (GUILayout.Button("🔄 Manual Refresh"))
         {
-            if (GUILayout.Button("🔄 Manual Refresh"))
-            {
-                submodules= SubModuleInfoFetcher.RefreshSubmodulesModel();
-            }
-
-            GUILayout.Space(10);
-
-            if (submodules.Count == 0)
-            {
-                EditorGUILayout.HelpBox("No Git submodules found. Please init a submodule first", MessageType.Info);
-                return;
-            }
-
-            foreach (var sub in submodules)
-            {
-                EditorGUILayout.BeginVertical("box");
-                EditorGUILayout.LabelField("Submodule:", sub.Path);
-                EditorGUILayout.LabelField("Path:", sub.Path);
-                EditorGUILayout.LabelField("Branch:", sub.Branch ?? "(unknown)");
-
-                if (sub.HasLocalChanges)
-                {
-                    EditorGUILayout.HelpBox("✏️ Has local changes", MessageType.Warning);
-                    _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Unstaged);
-                    _pullable = false;
-                    _pushable = false;
-                }
-
-                if (sub.CommitsBehind > 0 && sub.CommitsAhead > 0)
-                {
-                    EditorGUILayout.HelpBox($"⬇️ Behind by {sub.CommitsBehind} commits, ⬆️ ahead by {sub.CommitsAhead}",
-                        MessageType.Warning);
-                    _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.AheadAndBehind);
-                    _pullable = false;
-                    _pushable = false;
-                }
-                else if (sub.CommitsBehind > 0)
-                {
-                    EditorGUILayout.HelpBox($"⬇️ Needs Pull ({sub.CommitsBehind} commits behind)", MessageType.Warning);
-                    _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Behind);
-                    _pullable = true;
-                    _pushable = false;
-                }
-                else if (sub.CommitsBehind > 0)
-                {
-                    EditorGUILayout.HelpBox($"⬆️ Needs Push ({sub.CommitsAhead} commits ahead)", MessageType.Warning);
-                    _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Ahead);
-                    _pullable = false;
-                    _pushable = true;
-                }
-                else if (!sub.HasLocalChanges)
-                {
-                    EditorGUILayout.HelpBox("✅ Clean & up to date", MessageType.Info);
-                    _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Default);
-                    _pullable = false;
-                    _pushable = false;
-                }
-
-
-                EditorGUILayout.BeginHorizontal();
-                GUI.enabled = _pullable;
-                if (GUILayout.Button("Pull")) SubModuleInfoFetcher.RunGitCommand("pull", sub.Path);
-                GUI.enabled = true;
-                GUI.enabled = _pushable;
-                if (GUILayout.Button("Push")) SubModuleInfoFetcher.RunGitCommand("push", sub.Path);
-                EditorGUILayout.EndHorizontal();
-                GUI.enabled = true;
-
-                EditorGUILayout.EndVertical();
-                GUILayout.Space(5);
-            }
+            submodules = SubModuleInfoFetcher.RefreshSubmodulesModel();
         }
-    
+
+        GUILayout.Space(10);
+
+        if (submodules.Count == 0)
+        {
+            EditorGUILayout.HelpBox("No Git submodules found. Please init a submodule first", MessageType.Info);
+            return;
+        }
+        foreach (var sub in submodules)
+        {
+            DrawSubModuleBlock(sub);
+        }
+    }
+
+    private void DrawSubModuleBlock(SubmoduleInfo submoduleInfo)
+    {
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.LabelField("Submodule:", submoduleInfo.Path);
+        EditorGUILayout.LabelField("Path:", submoduleInfo.Path);
+        EditorGUILayout.LabelField("Branch:", submoduleInfo.Branch ?? "(unknown)");
+        if (submoduleInfo.HasLocalChanges)
+        {
+            EditorGUILayout.HelpBox("✏️ Has local changes", MessageType.Warning);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Unstaged);
+            _pullable = false;
+            _pushable = false;
+        }
+
+        if (submoduleInfo.CommitsBehind > 0 && submoduleInfo.CommitsAhead > 0)
+        {
+            EditorGUILayout.HelpBox(
+                $"⬇️ Behind by {submoduleInfo.CommitsBehind} commits, ⬆️ ahead by {submoduleInfo.CommitsAhead}",
+                MessageType.Warning);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.AheadAndBehind);
+            _pullable = false;
+            _pushable = false;
+        }
+        else if (submoduleInfo.CommitsBehind > 0)
+        {
+            EditorGUILayout.HelpBox($"⬇️ Needs Pull ({submoduleInfo.CommitsBehind} commits behind)",
+                MessageType.Warning);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Behind);
+            _pullable = true;
+            _pushable = false;
+        }
+        else if (submoduleInfo.CommitsBehind > 0)
+        {
+            EditorGUILayout.HelpBox($"⬆️ Needs Push ({submoduleInfo.CommitsAhead} commits ahead)", MessageType.Warning);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Ahead);
+            _pullable = false;
+            _pushable = true;
+        }
+        else if (!submoduleInfo.HasLocalChanges)
+        {
+            EditorGUILayout.HelpBox("✅ Clean & up to date", MessageType.Info);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Default);
+            _pullable = false;
+            _pushable = false;
+        }
+
+
+        EditorGUILayout.BeginHorizontal();
+        GUI.enabled = _pullable;
+        if (GUILayout.Button("Pull")) SubModuleInfoFetcher.RunGitCommand("pull", submoduleInfo.Path);
+        GUI.enabled = true;
+        GUI.enabled = _pushable;
+        if (GUILayout.Button("Push")) SubModuleInfoFetcher.RunGitCommand("push", submoduleInfo.Path);
+        EditorGUILayout.EndHorizontal();
+        GUI.enabled = true;
+        EditorGUILayout.EndVertical();
+        GUILayout.Space(5);
+    }
+
     /// <summary>
     /// Block for drawing git submodule Icons
     /// </summary>
@@ -173,5 +177,3 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
         EditorGUILayout.EndFoldoutHeaderGroup();
     }
 }
-
-

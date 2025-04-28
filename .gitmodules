@@ -1,3 +1,6 @@
 [submodule "Assets/UnityCommon"]
 	path = Assets/UnityCommon
 	url = https://github.com/Big-Bro222/UnityCommon.git
+[submodule "Assets/GitSubModuleTest"]
+	path = Assets/GitSubModuleTest
+	url = https://github.com/Big-Bro222/GitSubModuleTest.git
