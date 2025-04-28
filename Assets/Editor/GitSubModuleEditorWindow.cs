@@ -91,7 +91,7 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
         if (submoduleInfo.HasLocalChanges)
         {
             EditorGUILayout.HelpBox("✏️ Has local changes", MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Unstaged);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Unstaged,submoduleInfo.Path);
             _pullable = false;
             _pushable = false;
         }
@@ -101,7 +101,7 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
             EditorGUILayout.HelpBox(
                 $"⬇️ Behind by {submoduleInfo.CommitsBehind} commits, ⬆️ ahead by {submoduleInfo.CommitsAhead}",
                 MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.AheadAndBehind);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.AheadAndBehind,submoduleInfo.Path);
             _pullable = false;
             _pushable = false;
         }
@@ -109,21 +109,21 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
         {
             EditorGUILayout.HelpBox($"⬇️ Needs Pull ({submoduleInfo.CommitsBehind} commits behind)",
                 MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Behind);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Behind,submoduleInfo.Path);
             _pullable = true;
             _pushable = false;
         }
         else if (submoduleInfo.CommitsBehind > 0)
         {
             EditorGUILayout.HelpBox($"⬆️ Needs Push ({submoduleInfo.CommitsAhead} commits ahead)", MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Ahead);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Ahead,submoduleInfo.Path);
             _pullable = false;
             _pushable = true;
         }
         else if (!submoduleInfo.HasLocalChanges)
         {
             EditorGUILayout.HelpBox("✅ Clean & up to date", MessageType.Info);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Default);
+            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Default,submoduleInfo.Path);
             _pullable = false;
             _pushable = false;
         }

@@ -11,7 +11,7 @@ public class SubModuleSO : ScriptableObject
     public Texture2D SubmoduleIcon_Unstaged = default;
     public List<string> Submodules=new();
     public const string AssetPath = "Assets/Editor/GitSubModuleConfig.asset";
-    private Texture2D designatedIcon = default;
+    public readonly Dictionary<string, Texture2D> DesignatedIconDic = new();
 
     public static SubModuleSO LoadOrCreate()
     {
@@ -25,26 +25,24 @@ public class SubModuleSO : ScriptableObject
         return settings;
     }
 
-    public Texture2D DesignatedIcon=>designatedIcon;
-
-    public void SetSubModuleIcon(GitSubmoduleStatus submoduleStatus)
+    public void SetSubModuleIcon(GitSubmoduleStatus submoduleStatus,string repoPath)
     {
         switch (submoduleStatus)
         {
             case GitSubmoduleStatus.Ahead:
-                designatedIcon = SubmoduleIcon_Ahead;
+                DesignatedIconDic[repoPath] = SubmoduleIcon_Ahead;
                 break;
             case GitSubmoduleStatus.Behind:
-                designatedIcon = SubmoduleIcon_Behind;
+                DesignatedIconDic[repoPath] = SubmoduleIcon_Behind;
                 break;
             case GitSubmoduleStatus.AheadAndBehind:
-                designatedIcon = SubmoduleIcon_AheadAndBehind;
+                DesignatedIconDic[repoPath] = SubmoduleIcon_AheadAndBehind;
                 break;
             case GitSubmoduleStatus.Unstaged:
-                designatedIcon = SubmoduleIcon_Unstaged;
+                DesignatedIconDic[repoPath] = SubmoduleIcon_Unstaged;
                 break;
             default:
-                designatedIcon = SubmoduleIcon_Default;
+                DesignatedIconDic[repoPath] = SubmoduleIcon_Default;
                 break;
         }
     }

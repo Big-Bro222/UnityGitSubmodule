@@ -43,7 +43,7 @@ public class SubModuleIconDrawer
             imageRect = new Rect(rect.x + 2, rect.y - 1, rect.height + 2, rect.height + 2);
         }
 
-        var texture = _submoduleSaver.DesignatedIcon;
+        var texture = _submoduleSaver.DesignatedIconDic[path];
         if (texture == null)
         {
             return;
