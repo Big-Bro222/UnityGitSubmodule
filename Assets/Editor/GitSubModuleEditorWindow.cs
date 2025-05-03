@@ -88,47 +88,38 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
         EditorGUILayout.LabelField("Submodule:", submoduleInfo.Path);
         EditorGUILayout.LabelField("Path:", submoduleInfo.Path);
         EditorGUILayout.LabelField("Branch:", submoduleInfo.Branch ?? "(unknown)");
-        if (submoduleInfo.HasLocalChanges)
+        switch (submoduleInfo.GitStatus)
         {
-            EditorGUILayout.HelpBox("✏️ Has local changes", MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Unstaged,submoduleInfo.Path);
-            _pullable = false;
-            _pushable = false;
+            case GitSubmoduleStatus.Unstaged:
+                EditorGUILayout.HelpBox("✏️ Has local changes", MessageType.Warning);
+                _pullable = false;
+                _pushable = false;
+                break;
+            case GitSubmoduleStatus.AheadAndBehind:
+                EditorGUILayout.HelpBox(
+                    $"⬇️ Behind by {submoduleInfo.CommitsBehind} commits, ⬆️ ahead by {submoduleInfo.CommitsAhead}",
+                    MessageType.Warning);
+                _pullable = false;
+                _pushable = false;
+                break;
+            case GitSubmoduleStatus.Behind:
+                EditorGUILayout.HelpBox($"⬇️ Needs Pull ({submoduleInfo.CommitsBehind} commits behind)",
+                    MessageType.Warning);
+                _pullable = true;
+                _pushable = false;
+                break;
+            case GitSubmoduleStatus.Ahead:
+                EditorGUILayout.HelpBox($"⬆️ Needs Push ({submoduleInfo.CommitsAhead} commits ahead)", MessageType.Warning);
+                _pullable = false;
+                _pushable = true;
+                break;
+            default:
+                EditorGUILayout.HelpBox("✅ Clean & up to date", MessageType.Info);
+                _pullable = false;
+                _pushable = false;
+                break;
         }
-
-        if (submoduleInfo.CommitsBehind > 0 && submoduleInfo.CommitsAhead > 0)
-        {
-            EditorGUILayout.HelpBox(
-                $"⬇️ Behind by {submoduleInfo.CommitsBehind} commits, ⬆️ ahead by {submoduleInfo.CommitsAhead}",
-                MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.AheadAndBehind,submoduleInfo.Path);
-            _pullable = false;
-            _pushable = false;
-        }
-        else if (submoduleInfo.CommitsBehind > 0)
-        {
-            EditorGUILayout.HelpBox($"⬇️ Needs Pull ({submoduleInfo.CommitsBehind} commits behind)",
-                MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Behind,submoduleInfo.Path);
-            _pullable = true;
-            _pushable = false;
-        }
-        else if (submoduleInfo.CommitsBehind > 0)
-        {
-            EditorGUILayout.HelpBox($"⬆️ Needs Push ({submoduleInfo.CommitsAhead} commits ahead)", MessageType.Warning);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Ahead,submoduleInfo.Path);
-            _pullable = false;
-            _pushable = true;
-        }
-        else if (!submoduleInfo.HasLocalChanges)
-        {
-            EditorGUILayout.HelpBox("✅ Clean & up to date", MessageType.Info);
-            _submoduleSaver.SetSubModuleIcon(GitSubmoduleStatus.Default,submoduleInfo.Path);
-            _pullable = false;
-            _pushable = false;
-        }
-
-
+        
         EditorGUILayout.BeginHorizontal();
         GUI.enabled = _pullable;
         if (GUILayout.Button("Pull")) SubModuleInfoFetcher.RunGitCommand("pull", submoduleInfo.Path);

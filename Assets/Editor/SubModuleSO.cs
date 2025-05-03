@@ -9,7 +9,7 @@ public class SubModuleSO : ScriptableObject
     public Texture2D SubmoduleIcon_Behind = default;
     public Texture2D SubmoduleIcon_AheadAndBehind = default;
     public Texture2D SubmoduleIcon_Unstaged = default;
-    public List<string> Submodules=new();
+    public List<string> Submodules { get; set;} = new();
     public const string AssetPath = "Assets/Editor/GitSubModuleConfig.asset";
     public readonly Dictionary<string, Texture2D> DesignatedIconDic = new();
 

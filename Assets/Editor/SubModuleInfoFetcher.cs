@@ -44,7 +44,7 @@ public class SubModuleInfoFetcher
             var parts = line.Split('|');
             if (parts.Length != 5) continue;
 
-            var info = new SubmoduleInfo
+            SubmoduleInfo info = new SubmoduleInfo
             {
                 Path = parts[0].Trim(),
                 Branch = parts[1].Trim(),
@@ -52,7 +52,27 @@ public class SubModuleInfoFetcher
                 CommitsAhead = int.TryParse(parts[3].Trim(), out int ahead) ? ahead : 0,
                 HasLocalChanges = parts[4].Trim().Equals("YES")
             };
-
+            
+            if (info.HasLocalChanges)
+            {
+                info.GitStatus = GitSubmoduleStatus.Unstaged;
+            }
+            else if (info.CommitsBehind > 0 && info.CommitsAhead > 0)
+            {
+                info.GitStatus = GitSubmoduleStatus.AheadAndBehind;
+            }
+            else if (info.CommitsBehind > 0 && info.CommitsAhead <= 0)
+            {
+                info.GitStatus = GitSubmoduleStatus.Behind;
+            }
+            else if (info.CommitsAhead > 0)
+            {
+                info.GitStatus = GitSubmoduleStatus.Ahead;
+            }
+            else
+            {
+                info.GitStatus = GitSubmoduleStatus.Default;
+            }
             submodules.Add(info);
         }
 
@@ -101,6 +121,7 @@ public class SubModuleInfoFetcher
         _submoduleSaver.Submodules.Clear();
         foreach (var submoduleInfo in submoduleInfos)
         {
+            _submoduleSaver.SetSubModuleIcon(submoduleInfo.GitStatus,submoduleInfo.Path);
             _submoduleSaver.Submodules.Add(submoduleInfo.Path);
         }
         return submoduleInfos;
@@ -116,4 +137,5 @@ public class SubmoduleInfo
     public int CommitsBehind;
     public int CommitsAhead;
     public bool HasLocalChanges;
+    public GitSubmoduleStatus GitStatus;
 }
