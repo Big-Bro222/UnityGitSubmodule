@@ -15,8 +15,12 @@ public class GitSubModuleAssetModificationProcessor : AssetModificationProcessor
     {
         if (_subModuleSaver.Submodules.Contains(assetPath))
         {
-            Debug.LogWarning($"Deletion prevented: {assetPath}, , please do that in the editor window instead");
-            return AssetDeleteResult.DidNotDelete;
+            EditorUtility.DisplayDialog(
+                "Deleting Blocked",
+                $"Deletion prevented: {assetPath} , please do that in the editor window instead\"",
+                "OK"
+            );
+            return AssetDeleteResult.FailedDelete;
         }
         return AssetDeleteResult.DidDelete;
     }
@@ -31,7 +35,11 @@ public class GitSubModuleAssetModificationProcessor : AssetModificationProcessor
         {
             if (_subModuleSaver.Submodules.Contains(oldPath))
             {
-                Debug.LogWarning($"Rename of GitSubModule is not allowed : {oldPath}, please do that in the editor window instead");
+                EditorUtility.DisplayDialog(
+                    "Renaming Blocked",
+                    $"Rename of GitSubModule manually is not allowed : {oldPath}, please do that in the editor window instead",
+                    "OK"
+                );
                 return AssetMoveResult.FailedMove;
             }
         }
@@ -39,7 +47,11 @@ public class GitSubModuleAssetModificationProcessor : AssetModificationProcessor
         {
             if (_subModuleSaver.Submodules.Contains(oldPath))
             {
-                Debug.LogWarning($"Move of GitSubModule is not allowed : {oldPath}, please do that in the editor window instead");
+                EditorUtility.DisplayDialog(
+                    "Moving Blocked",
+                    $"GitSubModule folder cannot be moved manually: {oldPath}, please do that in the editor window instead",
+                    "OK"
+                );
                 return AssetMoveResult.FailedMove;
             }
         }
