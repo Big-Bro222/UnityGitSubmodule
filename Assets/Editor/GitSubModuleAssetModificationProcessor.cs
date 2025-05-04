@@ -15,14 +15,29 @@ public class GitSubModuleAssetModificationProcessor : AssetModificationProcessor
     {
         if (_subModuleSaver.Submodules.Contains(assetPath))
         {
-            EditorUtility.DisplayDialog(
+            int option=EditorUtility.DisplayDialogComplex(
                 "Deleting Blocked",
                 $"Deletion prevented: {assetPath} , please do that in the editor window instead\"",
-                "OK"
+                "OK",
+                "Cancel",
+                "Open Editor Window"
             );
+            switch (option)
+            {
+                case 0:
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    GitSubmoduleStatusEditorWindow.ShowWindow();
+                    break;
+                default:
+                    Debug.LogError("Unrecognized option.");
+                    break;
+            }
             return AssetDeleteResult.FailedDelete;
         }
-        return AssetDeleteResult.DidDelete;
+        return AssetDeleteResult.DidNotDelete;
     }
     
     //Disable Asset Moving
@@ -35,11 +50,26 @@ public class GitSubModuleAssetModificationProcessor : AssetModificationProcessor
         {
             if (_subModuleSaver.Submodules.Contains(oldPath))
             {
-                EditorUtility.DisplayDialog(
+                int option=EditorUtility.DisplayDialogComplex(
                     "Renaming Blocked",
                     $"Rename of GitSubModule manually is not allowed : {oldPath}, please do that in the editor window instead",
-                    "OK"
+                    "OK",
+                    "Cancel",
+                    "Open Editor Window"
                 );
+                switch (option)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        GitSubmoduleStatusEditorWindow.ShowWindow();
+                        break;
+                    default:
+                        Debug.LogError("Unrecognized option.");
+                        break;
+                }
                 return AssetMoveResult.FailedMove;
             }
         }
@@ -47,15 +77,30 @@ public class GitSubModuleAssetModificationProcessor : AssetModificationProcessor
         {
             if (_subModuleSaver.Submodules.Contains(oldPath))
             {
-                EditorUtility.DisplayDialog(
+                int option=EditorUtility.DisplayDialogComplex(
                     "Moving Blocked",
                     $"GitSubModule folder cannot be moved manually: {oldPath}, please do that in the editor window instead",
-                    "OK"
+                    "OK",
+                    "Cancel",
+                    "Open Editor Window"
                 );
+                switch (option)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        GitSubmoduleStatusEditorWindow.ShowWindow();
+                        break;
+                    default:
+                        Debug.LogError("Unrecognized option.");
+                        break;
+                }
                 return AssetMoveResult.FailedMove;
             }
         }
 
-        return AssetMoveResult.DidMove;
+        return AssetMoveResult.DidNotMove;
     }
 }
