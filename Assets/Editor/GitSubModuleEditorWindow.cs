@@ -128,6 +128,7 @@ public class GitSubmoduleStatusEditorWindow : EditorWindow
         if (GUILayout.Button("Push")) SubModuleInfoFetcher.RunGitCommand("push", submoduleInfo.Path);
         EditorGUILayout.EndHorizontal();
         GUI.enabled = true;
+        if (GUILayout.Button("Edit")) SingleSubModuleEditorWindow.ShowWindow(submoduleInfo.Path);;
         EditorGUILayout.EndVertical();
         GUILayout.Space(5);
     }
